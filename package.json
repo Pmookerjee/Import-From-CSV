@@ -1,0 +1,25 @@
+{
+  "name": "Import-From-CSV",
+  "version": "1.0.0",
+  "description": "Imports local csv file data to a contract",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pmookerjee/Import-From-CSV.git"
+  },
+  "keywords": [],
+  "author": "Paula Mookerjee",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Pmookerjee/Import-From-CSV/issues"
+  },
+  "homepage": "https://github.com/Pmookerjee/Import-From-CSV#readme",
+  "dependencies": {
+    "papaparse": "^4.4.0",
+    "requirejs": "^2.3.5",
+    "superagent": "^3.8.3"
+  }
+}
