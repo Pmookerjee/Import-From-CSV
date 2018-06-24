@@ -112,8 +112,15 @@ function authenticate(api) {
       agent.get(`${api}/1.0/Authenticate/marla/rocinante`)
         .withCredentials()
         .then(function(res){
-          sessionID = res.body.SessionID;
-          complete(sessionID);
+          var error  = checkForError(res.body); 
+          if(error){
+            console.log('Error: ', error);
+            fail('Error occurred while authenticating')
+          }
+          else {
+            sessionID = res.body.SessionID;
+            complete(sessionID);
+          }
         })
   })
 }
@@ -136,7 +143,7 @@ function postBidItems(bidItems) {
             
             if(errors.length){
               console.log('Errors: ', errors);
-              fail('Error occurred while posting bid item org joins')
+              fail('Error occurred while posting bid items')
             }
             else {
               console.log(`Posted ${bidItems.length} bid items`);
@@ -283,6 +290,55 @@ function postLineItemOrgJoins([bidItems, lineItems]) {
   }) 
 }
 
+function rebuildLabels() {
+
+  return new Promise(function (complete, fail) {
+
+    var API_URL = 'https://headlightqa.paviasystems.com';
+    console.log('Rebuilding tags...')
+
+    function rebuildBidItems() {
+      return new Promise(function (complete, fail) {
+        superagent.get(`${API_URL}/1.0/RebuildTags/BidItem/${pIDProject}`)
+        .withCredentials()
+        .auth('Authorization', sessionID, {type:'auto'})
+        .then(function(res) {
+
+          var errors  = res.body.filter(checkForError); 
+
+          if(errors.length){
+          console.log('Errors: ', errors);
+            fail('Error occurred while rebuilding bid items')
+          }
+          else {
+            complete();
+          }
+        })
+        .catch(function (error) { fail(error); })
+      })
+    }
+
+    superagent.get(`${API_URL}/1.0/RebuildTags/LineItem/${pIDProject}`)
+      .withCredentials()
+      .auth('Authorization', sessionID, {type:'auto'})
+      .then(function(res) {
+
+        var errors  = res.body.filter(checkForError); 
+
+        if(errors.length){
+          console.log('Errors: ', errors);
+            fail('Error occurred while rebuilding line items')
+        }
+        else {
+          return rebuildBidItems()
+        }
+      })
+      .then(function() {
+          complete();
+      })
+      .catch(function(error) { fail(error); })
+  })
+}
 
 function handleFileSelect(e) {
   var file = e.target.files[0];
@@ -316,9 +372,9 @@ function handleFileSelect(e) {
     .then(function(lineItemResponseData) {
       return postLineItemOrgJoins(lineItemResponseData);
     })
-    // .then(function() {
-    //   return 
-    // })
+    .then(function(bidAndLineItems) {
+      return rebuildLabels(bidAndLineItems);
+    })
     .then(function(){
       console.log('CSV import complete.')
     })
